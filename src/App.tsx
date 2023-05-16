@@ -22,6 +22,7 @@ const App: Component = () => {
     numOfRounds: 5,
   })
   const [history, setHistory] = createSignal<string[]>([])
+  const [ticketQRCodeImage, setTicketQRCodeImage] = createSignal('')
 
   ws.onopen = () => {
     ws.onmessage = ({ data }) => {
@@ -54,6 +55,9 @@ const App: Component = () => {
         })
         setHistory([...history(), 'you won ' + message.data])
       }
+      if (message.type === GameActions.BET_SUCCESS_RESPONSE) {
+        setTicketQRCodeImage(message.data)
+      }
     }
 
     ws.send(
@@ -71,24 +75,19 @@ const App: Component = () => {
     )
   }
 
+  console.log(ticket())
+  console.log(gameState())
+  console.log(playerState())
+
   return (
     <div>
-      <h1> HOME </h1>
-      <div class='flex justify-between text-xl font-bold'>
-        <span> ROUND - {gameState()?.round} </span>
-        <span> MONEY - {playerState()?.money} </span>
-        <span> PLAYERS - {gameState()?.activePlayers} </span>
-      </div>
-      <div>
-        <span> BALLS HIT - {ballsHitCurrentRound()} </span>
-      </div>
-      <div>
-        <For each={history()}>{(elem) => <p> {elem} </p>}</For>
-      </div>
-      <Show when={gameState()?.status === GameStatus.WAITING_FOR_NEXT_ROUND}>
-        <h1> WAITING FOR NEXT ROUND </h1>
-      </Show>
-      <div class='grid grid-cols-6'>
+      <div> {JSON.stringify(gameState())} </div>
+      <div> {JSON.stringify(ticket())} </div>
+      <div> {JSON.stringify(playerState())} </div>
+
+      <img src={ticketQRCodeImage()} />
+
+      <div class='grid grid-cols-6 max-w-lg'>
         <For each={playingBalls()}>
           {(ball) => {
             if (ticket()?.userBalls.includes(ball)) {
@@ -98,7 +97,7 @@ const App: Component = () => {
               <span
                 class={classNames({
                   'bg-green-500 text-white': ticket()?.userBalls.includes(ball),
-                  'flex justify-center items-center p-3 border border-gray-900 aspect-square text-5xl':
+                  'flex justify-center items-center pt-8 pb-8 border border-gray-900 text-xl':
                     true,
                 })}
               >
@@ -107,6 +106,9 @@ const App: Component = () => {
             )
           }}
         </For>
+      </div>
+      <div>
+        <For each={history()}>{(elem) => <p> {elem} </p>}</For>
       </div>
     </div>
   )

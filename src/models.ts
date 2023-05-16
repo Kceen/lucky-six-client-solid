@@ -30,6 +30,7 @@ export enum GameActions {
   UPDATE_GAME_STATE = 'UPDATE_GAME_STATE',
   PLAYER_WIN = 'PLAYER_WIN',
   BET = 'BET',
+  BET_SUCCESS_RESPONSE = 'BET_SUCCESS_RESPONSE',
 }
 
 export enum GameStatus {
