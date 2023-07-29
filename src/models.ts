@@ -11,6 +11,24 @@ export interface ITicket {
   numOfRounds: number
 }
 
+export interface ITicketStatus {
+  ticketId: string
+  betPerRound: number
+  rounds: ITicketRound[]
+  userBalls: number[]
+  startingRound: number
+  numOfRounds: number
+  timestamp: Date
+  active: boolean
+}
+
+export interface ITicketRound {
+  number: number
+  balls: number[]
+  status: 'WIN' | 'LOSE'
+  amountWon: number
+}
+
 export interface IMessage {
   type: GameActions
   data?: any
@@ -30,10 +48,10 @@ export enum GameActions {
   UPDATE_GAME_STATE = 'UPDATE_GAME_STATE',
   PLAYER_WIN = 'PLAYER_WIN',
   BET = 'BET',
-  BET_SUCCESS_RESPONSE = 'BET_SUCCESS_RESPONSE',
+  BET_SUCCESS_RESPONSE = 'BET_SUCCESS_RESPONSE'
 }
 
 export enum GameStatus {
   ROUND_IN_PROGRESS = 'ROUND_IN_PROGRESS',
-  WAITING_FOR_NEXT_ROUND = 'WAITING_FOR_NEXT_ROUND',
+  WAITING_FOR_NEXT_ROUND = 'WAITING_FOR_NEXT_ROUND'
 }
