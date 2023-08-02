@@ -5,6 +5,7 @@ import './index.css'
 import App from './App'
 import { Router, Route, Routes } from '@solidjs/router'
 import { TicketStatus } from './TicketStatus'
+import { Layout } from './layout'
 
 const root = document.getElementById('root')
 
@@ -18,8 +19,10 @@ render(
   () => (
     <Router>
       <Routes>
-        <Route path="/" component={App} />
-        <Route path="/ticket-check" component={TicketStatus} />
+        <Route path="/" component={Layout}>
+          <Route path="/" component={App} />
+          <Route path="/ticket-status" component={TicketStatus} />
+        </Route>
       </Routes>
     </Router>
   ),

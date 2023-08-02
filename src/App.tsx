@@ -1,36 +1,56 @@
-import { Component, For, Show, createSignal } from 'solid-js'
-import { createStore } from 'solid-js/store'
+import { Component, For, Show, createEffect, createSignal } from 'solid-js'
 import { convertMessageRecieve } from './helpers'
 import { GameActions, GameStatus, IGameState, IPlayer, ITicket } from './models'
-import classNames from 'classnames'
-import { A } from '@solidjs/router'
 import Swal from 'sweetalert2'
 
 const App: Component = () => {
   const ws = new WebSocket('ws://localhost:8080')
   const [playingBalls, setPlayingBalls] = createSignal([] as number[])
+  const [playingBallsDrum, setPlayingBallsDrum] = createSignal([] as number[])
   const [gameState, setGameState] = createSignal<IGameState | undefined>(
     undefined
   )
-  const [playerState, setPlayerState] = createSignal<IPlayer>({
-    id: '1',
-    name: 'Nikola',
-    money: 500
-  })
-  const [ballsHitCurrentRound, setBallsHitCurrentRound] = createSignal(0)
-  const [ticket, setTicket] = createSignal<ITicket | undefined>({
-    playerId: playerState().id,
-    userBalls: [1, 2, 3, 4, 5, 6],
-    betPerRound: 30,
-    numOfRounds: 5
-  })
-  const [history, setHistory] = createSignal<string[]>([])
+  // const [ticket, setTicket] = createSignal<ITicket | undefined>({
+  //   playerId: '1',
+  //   userBalls: [1, 2, 3, 4, 5, 6],
+  //   betPerRound: 30,
+  //   numOfRounds: 5
+  // })
   const [ticketQRCodeImage, setTicketQRCodeImage] = createSignal('')
   const [timeRemaining, setTimeRemaining] = createSignal(0)
+  const [isPause, setIsPause] = createSignal(false)
 
-  const [betForm, setBetForm] = createStore({
-    amount: 0,
-    rounds: 0
+  let backdropElement: HTMLDivElement
+
+  createEffect(() => {
+    if (timeRemaining() !== 0) {
+      setIsPause(true)
+    } else {
+      setIsPause(false)
+    }
+  })
+
+  createEffect(() => {
+    console.log(isPause())
+
+    if (isPause()) {
+      backdropElement = document.createElement('div')
+      backdropElement.style.backdropFilter = 'blur(15px)'
+      backdropElement.style.background = 'rgba(0,0,0,.4)'
+      backdropElement.style.position = 'fixed'
+      backdropElement.style.zIndex = '1060'
+      backdropElement.style.inset = '0'
+      backdropElement.style.height = '100%'
+
+      // backdropElement.textContent = timeRemaining().toString()
+
+      backdropElement.id = 'pause-backdrop'
+      document.body.appendChild(backdropElement)
+    } else {
+      if (document.getElementById('pause-backdrop')) {
+        backdropElement!.remove()
+      }
+    }
   })
 
   const submitBet = (betPerRound: number, numOfRounds: number) => {
@@ -38,7 +58,7 @@ const App: Component = () => {
       JSON.stringify({
         type: GameActions.BET,
         data: {
-          playerId: playerState().id,
+          playerId: '1',
           userBalls: [1, 2, 3, 4, 5, 6],
           betPerRound,
           numOfRounds
@@ -92,8 +112,8 @@ const App: Component = () => {
         //     ...playerState(),
         //     money: playerState().money - ticket()!.betPerRound
         //   })
-        setBallsHitCurrentRound(0)
         setPlayingBalls([])
+        setPlayingBallsDrum([])
         //   setGameState(message.data)
         //   setHistory([...history(), 'you lost ' + ticket()!.betPerRound])
         // }
@@ -106,12 +126,10 @@ const App: Component = () => {
       if (message.type === GameActions.NEW_BALL) {
         setPlayingBalls([...playingBalls(), message.data])
       }
+      if (message.type === GameActions.NEW_DRUM_BALL) {
+        setPlayingBallsDrum([...playingBallsDrum(), message.data])
+      }
       if (message.type === GameActions.PLAYER_WIN) {
-        setPlayerState({
-          ...playerState(),
-          money: (playerState().money += message.data)
-        })
-        setHistory([...history(), 'you won ' + message.data])
       }
       if (message.type === GameActions.BET_SUCCESS_RESPONSE) {
         Swal.fire({
@@ -137,81 +155,53 @@ const App: Component = () => {
     ws.send(
       JSON.stringify({
         type: GameActions.PLAYER_JOINED,
-        data: playerState()
+        data: {
+          id: '1',
+          name: 'Nikola',
+          money: 500
+        }
       })
     )
   }
 
-  console.log(ticket())
   console.log(gameState())
-  console.log(playerState())
 
   return (
-    <div>
-      <A href="/ticket-check" class="pb-5">
-        link for ticket checking
-      </A>
+    <div class="relative">
+      <div class="absolute right-5 top-5 text-3xl font-bold">
+        round {gameState()?.round}
+      </div>
 
-      <div> {JSON.stringify(gameState())} </div>
-      <div> {JSON.stringify(ticket())} </div>
-      <div> {JSON.stringify(playerState())} </div>
+      <div class="mx-auto my-0 grid w-1/2 grid-cols-5">
+        <For each={playingBallsDrum()}>
+          {(ball) => {
+            return <img src={`/src/assets/balls/${ball}.svg`} />
+          }}
+        </For>
+      </div>
 
       <Show when={gameState()?.status === GameStatus.WAITING_FOR_NEXT_ROUND}>
         <div> {timeRemaining()} </div>
       </Show>
 
-      <button onclick={openBetModal}> BET </button>
-
-      {/* <div class="text-center flex flex-col items-center">
-        <p class="text-4xl"> BET </p>
-        <p> amount </p>
-        <input
-          oninput={(e) => {
-            setBetForm({ amount: Number(e.target.value) })
-          }}
-          class="border border-black w-72 p-3"
-          type="number"
-        />
-        <p> rounds </p>
-        <input
-          oninput={(e) => {
-            setBetForm({ rounds: Number(e.target.value) })
-          }}
-          class="border border-black w-72 p-3"
-          type="number"
-        />
-        <button
-          class="block border border-black text-3xl p-4 my-6"
-          onclick={submitBet}
-        >
-          submit bet
-        </button>
-      </div> */}
+      <button
+        class="fixed bottom-5 right-5 rounded-md bg-green-500 p-6 text-3xl font-bold text-white transition-colors duration-200 hover:bg-green-600"
+        onclick={openBetModal}
+      >
+        BET
+      </button>
 
       <img src={ticketQRCodeImage()} />
 
-      <div class=" grid max-w-2xl grid-cols-7">
+      <div class=" grid h-full max-w-2xl grid-flow-col grid-cols-5 grid-rows-6">
         <For each={playingBalls()}>
-          {(ball) => {
-            if (ticket()?.userBalls.includes(ball)) {
-              setBallsHitCurrentRound(ballsHitCurrentRound() + 1)
-            }
-            return (
-              <span
-                class={classNames({
-                  'bg-green-500 text-white': ticket()?.userBalls.includes(ball),
-                  ' flex items-center justify-center border border-gray-900 pb-8 pt-8 text-xl':
-                    true
-                })}
-              >
-                {ball}
-              </span>
-            )
-          }}
+          {(ball) => (
+            <img
+              src={`/src/assets/balls/${ball}.svg`}
+              class="flex h-fit items-center justify-center"
+            />
+          )}
         </For>
-      </div>
-      <div>
-        <For each={history()}>{(elem) => <p> {elem} </p>}</For>
       </div>
     </div>
   )

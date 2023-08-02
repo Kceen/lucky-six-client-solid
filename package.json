@@ -10,16 +10,15 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "prettier": "^3.0.0",
+    "prettier-plugin-tailwindcss": "^0.4.1",
     "typescript": "^4.9.5",
     "vite": "^4.1.1",
-    "vite-plugin-solid": "^2.5.0",
-    "prettier": "^3.0.0",
-    "prettier-plugin-tailwindcss": "^0.4.1"
+    "vite-plugin-solid": "^2.5.0"
   },
   "dependencies": {
     "@solidjs/router": "^0.8.2",
     "autoprefixer": "^10.4.14",
-    "classnames": "^2.3.2",
     "postcss": "^8.4.21",
     "solid-js": "^1.6.10",
     "sweetalert2": "^11.7.20",

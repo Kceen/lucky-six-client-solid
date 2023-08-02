@@ -27,7 +27,7 @@ export const TicketStatus = () => {
       <div class="mb-10">
         <p> ticket id </p>
         <input
-          class="border border-black w-full p-3"
+          class="w-full border border-black p-3"
           value={ticketIdInput()}
           oninput={(e) => {
             setTicketIdInput(e.target.value)
@@ -66,15 +66,14 @@ export const TicketStatus = () => {
                 <div class="grid grid-cols-8 border border-black">
                   <For each={round.balls}>
                     {(ball) => (
-                      <div
+                      <img
+                        src={`/src/assets/balls/${ball}.svg`}
                         class={`${
                           ticketData()?.userBalls.includes(ball)
                             ? 'bg-green-500 text-white'
                             : ''
-                        } p-3 text-center border text-2xl`}
-                      >
-                        {ball}
-                      </div>
+                        } mx-auto my-0 w-20 text-center text-2xl`}
+                      />
                     )}
                   </For>
                 </div>
