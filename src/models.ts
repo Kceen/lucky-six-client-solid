@@ -38,6 +38,8 @@ export interface IGameState {
   round: number
   activePlayers: number
   status: GameStatus
+  activeBalls: number[]
+  timeRemaining: number
 }
 
 export enum GameActions {

@@ -1,40 +1,26 @@
 import { Component, For, Show, createEffect, createSignal } from 'solid-js'
+import { createStore } from 'solid-js/store'
 import { convertMessageRecieve } from './helpers'
 import { GameActions, GameStatus, IGameState, IPlayer, ITicket } from './models'
 import Swal from 'sweetalert2'
 
 const App: Component = () => {
   const ws = new WebSocket('ws://localhost:8080')
-  const [playingBalls, setPlayingBalls] = createSignal([] as number[])
-  const [playingBallsDrum, setPlayingBallsDrum] = createSignal([] as number[])
-  const [gameState, setGameState] = createSignal<IGameState | undefined>(
-    undefined
-  )
-  // const [ticket, setTicket] = createSignal<ITicket | undefined>({
-  //   playerId: '1',
-  //   userBalls: [1, 2, 3, 4, 5, 6],
-  //   betPerRound: 30,
-  //   numOfRounds: 5
-  // })
-  const [ticketQRCodeImage, setTicketQRCodeImage] = createSignal('')
-  const [timeRemaining, setTimeRemaining] = createSignal(0)
-  const [isPause, setIsPause] = createSignal(false)
-
-  let backdropElement: HTMLDivElement
-
-  createEffect(() => {
-    if (timeRemaining() !== 0) {
-      setIsPause(true)
-    } else {
-      setIsPause(false)
-    }
+  const [gameState, setGameState] = createStore<IGameState>({
+    activeBalls: [],
+    activePlayers: 0,
+    round: 0,
+    status: GameStatus.WAITING_FOR_NEXT_ROUND,
+    timeRemaining: 0
   })
+  const [ticketQRCodeImage, setTicketQRCodeImage] = createSignal('')
+
+  let backdropElement = document.createElement('div')
 
   createEffect(() => {
-    console.log(isPause())
+    console.log('effect')
 
-    if (isPause()) {
-      backdropElement = document.createElement('div')
+    if (gameState.status === GameStatus.WAITING_FOR_NEXT_ROUND) {
       backdropElement.style.backdropFilter = 'blur(15px)'
       backdropElement.style.background = 'rgba(0,0,0,.4)'
       backdropElement.style.position = 'fixed'
@@ -42,13 +28,13 @@ const App: Component = () => {
       backdropElement.style.inset = '0'
       backdropElement.style.height = '100%'
 
-      // backdropElement.textContent = timeRemaining().toString()
+      backdropElement.textContent = gameState.timeRemaining.toString() || ''
 
       backdropElement.id = 'pause-backdrop'
       document.body.appendChild(backdropElement)
     } else {
       if (document.getElementById('pause-backdrop')) {
-        backdropElement!.remove()
+        backdropElement.remove()
       }
     }
   })
@@ -106,28 +92,8 @@ const App: Component = () => {
     ws.onmessage = ({ data }) => {
       const message = convertMessageRecieve(data)
 
-      if (message.type === GameActions.ROUND_START) {
-        // if (ticket()) {
-        //   setPlayerState({
-        //     ...playerState(),
-        //     money: playerState().money - ticket()!.betPerRound
-        //   })
-        setPlayingBalls([])
-        setPlayingBallsDrum([])
-        //   setGameState(message.data)
-        //   setHistory([...history(), 'you lost ' + ticket()!.betPerRound])
-        // }
-      }
-      if (message.type === GameActions.ROUND_END) {
-      }
       if (message.type === GameActions.UPDATE_GAME_STATE) {
         setGameState(message.data)
-      }
-      if (message.type === GameActions.NEW_BALL) {
-        setPlayingBalls([...playingBalls(), message.data])
-      }
-      if (message.type === GameActions.NEW_DRUM_BALL) {
-        setPlayingBallsDrum([...playingBallsDrum(), message.data])
       }
       if (message.type === GameActions.PLAYER_WIN) {
       }
@@ -144,12 +110,6 @@ const App: Component = () => {
         })
         setTicketQRCodeImage(message.data)
       }
-      if (message.type === GameActions.UPDATE_BALLS) {
-        setPlayingBalls(message.data)
-      }
-      if (message.type === GameActions.TIME_REMAINING) {
-        setTimeRemaining(message.data)
-      }
     }
 
     ws.send(
@@ -164,24 +124,26 @@ const App: Component = () => {
     )
   }
 
-  console.log(gameState())
+  console.log(gameState)
 
   return (
     <div class="relative">
       <div class="absolute right-5 top-5 text-3xl font-bold">
-        round {gameState()?.round}
+        round {gameState.round}
       </div>
 
       <div class="mx-auto my-0 grid w-1/2 grid-cols-5">
-        <For each={playingBallsDrum()}>
-          {(ball) => {
-            return <img src={`/src/assets/balls/${ball}.svg`} />
+        <For each={gameState.activeBalls}>
+          {(ball, index) => {
+            if (index() < 5) {
+              return <img src={`/src/assets/balls/${ball}.svg`} />
+            }
           }}
         </For>
       </div>
 
-      <Show when={gameState()?.status === GameStatus.WAITING_FOR_NEXT_ROUND}>
-        <div> {timeRemaining()} </div>
+      <Show when={gameState.status === GameStatus.WAITING_FOR_NEXT_ROUND}>
+        <div> {gameState.timeRemaining} </div>
       </Show>
 
       <button
@@ -194,13 +156,17 @@ const App: Component = () => {
       <img src={ticketQRCodeImage()} />
 
       <div class=" grid h-full max-w-2xl grid-flow-col grid-cols-5 grid-rows-6">
-        <For each={playingBalls()}>
-          {(ball) => (
-            <img
-              src={`/src/assets/balls/${ball}.svg`}
-              class="flex h-fit items-center justify-center"
-            />
-          )}
+        <For each={gameState.activeBalls}>
+          {(ball, index) => {
+            if (index() > 4) {
+              return (
+                <img
+                  src={`/src/assets/balls/${ball}.svg`}
+                  class="flex h-fit items-center justify-center"
+                />
+              )
+            }
+          }}
         </For>
       </div>
     </div>
