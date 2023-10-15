@@ -1,8 +1,10 @@
 import { Component, For, Show, createEffect, createSignal } from 'solid-js'
 import { createStore } from 'solid-js/store'
-import { convertMessageRecieve } from './helpers'
+import { convertMessageRecieve, stakes } from './helpers'
 import { GameActions, GameStatus, IGameState, IPlayer, ITicket } from './models'
 import Swal from 'sweetalert2'
+import { Transition } from 'solid-transition-group'
+import { Portal } from 'solid-js/web'
 
 const App: Component = () => {
   const ws = new WebSocket('ws://localhost:8080')
@@ -14,6 +16,7 @@ const App: Component = () => {
     timeRemaining: 0
   })
   const [ticketQRCodeImage, setTicketQRCodeImage] = createSignal('')
+  const [newBallTrigger, setNewBallTrigger] = createSignal(false)
 
   let backdropElement = document.createElement('div')
 
@@ -28,7 +31,7 @@ const App: Component = () => {
       backdropElement.style.inset = '0'
       backdropElement.style.height = '100%'
 
-      backdropElement.textContent = gameState.timeRemaining.toString() || ''
+      backdropElement.textContent = gameState.timeRemaining.toString()
 
       backdropElement.id = 'pause-backdrop'
       document.body.appendChild(backdropElement)
@@ -95,6 +98,10 @@ const App: Component = () => {
       if (message.type === GameActions.UPDATE_GAME_STATE) {
         setGameState(message.data)
       }
+      if (message.type === GameActions.NEW_BALL) {
+        setNewBallTrigger(false)
+        setNewBallTrigger(true)
+      }
       if (message.type === GameActions.PLAYER_WIN) {
       }
       if (message.type === GameActions.BET_SUCCESS_RESPONSE) {
@@ -127,49 +134,109 @@ const App: Component = () => {
   console.log(gameState)
 
   return (
-    <div class="relative">
-      <div class="absolute right-5 top-5 text-3xl font-bold">
-        round {gameState.round}
+    <>
+      <div class="relative">
+        <div class="absolute right-5 top-5 text-3xl font-bold">
+          round {gameState.round}
+        </div>
+
+        <div class="mx-auto my-0 grid w-1/2 grid-cols-5 gap-4">
+          <For each={gameState.activeBalls}>
+            {(ball, index) => {
+              if (index() < 5) {
+                return <img src={`/src/assets/balls/${ball}.svg`} />
+              }
+            }}
+          </For>
+        </div>
+
+        <Show when={gameState.status === GameStatus.WAITING_FOR_NEXT_ROUND}>
+          <div> {gameState.timeRemaining} </div>
+        </Show>
+
+        <button
+          class="fixed bottom-5 right-5 rounded-md bg-green-500 p-6 text-3xl font-bold text-white transition-colors duration-200 hover:bg-green-600"
+          onclick={openBetModal}
+        >
+          BET
+        </button>
+
+        <img src={ticketQRCodeImage()} />
+
+        <div class=" grid h-full max-w-2xl grid-flow-col grid-cols-5 grid-rows-6 gap-4">
+          <For each={gameState.activeBalls}>
+            {(ball, index) => {
+              if (index() > 4) {
+                return (
+                  <Transition
+                    appear={true}
+                    onEnter={(el, done) => {
+                      const a = el.animate(
+                        [
+                          { opacity: 0, transform: 'scale(0)' },
+                          { opacity: 1, transform: 'scale(1)' }
+                        ],
+                        {
+                          duration: 600
+                        }
+                      )
+                      a.finished.then(done)
+                    }}
+                    onExit={(el, done) => {
+                      const a = el.animate([{ opacity: 1 }, { opacity: 0 }], {
+                        duration: 600
+                      })
+                      a.finished.then(done)
+                    }}
+                  >
+                    <div class="text-center">
+                      <img
+                        src={`/src/assets/balls/${ball}.svg`}
+                        class="flex h-fit items-center justify-center"
+                      />
+                      <span> {stakes[index() + 1]}x </span>
+                    </div>
+                  </Transition>
+                )
+              }
+            }}
+          </For>
+        </div>
       </div>
-
-      <div class="mx-auto my-0 grid w-1/2 grid-cols-5">
-        <For each={gameState.activeBalls}>
-          {(ball, index) => {
-            if (index() < 5) {
-              return <img src={`/src/assets/balls/${ball}.svg`} />
-            }
-          }}
-        </For>
-      </div>
-
-      <Show when={gameState.status === GameStatus.WAITING_FOR_NEXT_ROUND}>
-        <div> {gameState.timeRemaining} </div>
-      </Show>
-
-      <button
-        class="fixed bottom-5 right-5 rounded-md bg-green-500 p-6 text-3xl font-bold text-white transition-colors duration-200 hover:bg-green-600"
-        onclick={openBetModal}
-      >
-        BET
-      </button>
-
-      <img src={ticketQRCodeImage()} />
-
-      <div class=" grid h-full max-w-2xl grid-flow-col grid-cols-5 grid-rows-6">
-        <For each={gameState.activeBalls}>
-          {(ball, index) => {
-            if (index() > 4) {
-              return (
-                <img
-                  src={`/src/assets/balls/${ball}.svg`}
-                  class="flex h-fit items-center justify-center"
-                />
+      <Portal>
+        <div class="fixed left-1/2 top-1/2 w-72 -translate-x-1/2 -translate-y-1/2">
+          <Transition
+            appear={true}
+            onEnter={(el, done) => {
+              const a = el.animate(
+                [
+                  { opacity: 0, transform: 'scale(0)' },
+                  { opacity: 1, transform: 'scale(1)' }
+                ],
+                {
+                  duration: 1000
+                }
               )
-            }
-          }}
-        </For>
-      </div>
-    </div>
+              a.finished.then(done)
+            }}
+            onExit={(el, done) => {
+              const a = el.animate([{ opacity: 1 }, { opacity: 0 }], {
+                duration: 0
+              })
+              a.finished.then(done)
+            }}
+          >
+            <Show when={newBallTrigger() && gameState.activeBalls.length > 0}>
+              <img
+                src={`/src/assets/balls/${
+                  gameState.activeBalls[gameState.activeBalls.length - 1]
+                }.svg`}
+              />
+            </Show>
+          </Transition>
+        </div>
+      </Portal>
+    </>
   )
 }
 
