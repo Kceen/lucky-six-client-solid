@@ -20,6 +20,7 @@ export interface ITicketStatus {
   numOfRounds: number
   timestamp: Date
   active: boolean
+  amountWon: number
 }
 
 export interface ITicketRound {
@@ -39,6 +40,7 @@ export interface IGameState {
   activePlayers: number
   status: GameStatus
   activeBalls: number[]
+  pauseTime: number
   timeRemaining: number
   firstBallHigherThan24: boolean
   firstBallColor: string

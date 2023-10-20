@@ -5,7 +5,7 @@ import './index.css'
 import App from './App'
 import { Router, Route, Routes } from '@solidjs/router'
 import { TicketStatus } from './TicketStatus'
-import { Layout } from './layout'
+import { Layout } from './Layout/base'
 
 const root = document.getElementById('root')
 

@@ -1,94 +1,107 @@
-import { For, Show, createSignal } from 'solid-js'
+import { For, Show, createEffect, createResource, createSignal } from 'solid-js'
 import { ITicketStatus } from './models'
+import { useSearchParams } from '@solidjs/router'
+import { stakes } from './helpers'
 
 export const TicketStatus = () => {
-  const [ticketIdInput, setTicketIdInput] = createSignal('')
   const [ticketData, setTicketData] = createSignal<ITicketStatus | undefined>()
   const [responseStatusMessage, setResponseStatusMessage] = createSignal('')
 
+  const [queryParams] = useSearchParams()
+
   const submitTicketId = async () => {
-    const response = await fetch(
-      'http://localhost:3001/ticket-status/' + ticketIdInput()
-    )
-    if (response.status === 404) {
-      setResponseStatusMessage('No ticket found with id')
-      setTicketData(undefined)
-    } else {
-      const ticketData: ITicketStatus = await response.json()
-      setTicketData(ticketData)
-      setResponseStatusMessage('')
-    }
+    return await fetch('http://localhost:3001/ticket-status/' + queryParams.id)
   }
 
-  return (
-    <div>
-      <h1 class="text-4xl"> Ticket status </h1>
+  const [data, { refetch }] = createResource(submitTicketId)
 
-      <div class="mb-10">
-        <p> ticket id </p>
-        <input
-          class="w-full border border-black p-3"
-          value={ticketIdInput()}
-          oninput={(e) => {
-            setTicketIdInput(e.target.value)
-          }}
-        />
-        <button class="border border-black p-3" onclick={submitTicketId}>
-          submit
-        </button>
-      </div>
+  createEffect(() => {
+    if (data()?.status === 404) {
+      setResponseStatusMessage('No ticket found with id')
+    } else {
+      data()
+        ?.json()
+        .then((ticket: ITicketStatus) => {
+          ticket.timestamp = new Date(ticket.timestamp)
+          setTicketData(ticket)
+        })
+    }
+  })
+
+  return (
+    <div class="m-12">
+      <h1 class="mb-6 text-4xl"> Ticket status </h1>
+
+      <button
+        class="bg-black"
+        onclick={() => {
+          refetch()
+        }}
+      >
+        refresh
+      </button>
 
       <p> {responseStatusMessage()} </p>
+      <p> {data.loading ? 'Loading ticket...' : ''} </p>
+
       <Show when={ticketData()}>
         <div>
-          <p> id - {ticketData()?.ticketId} </p>
-          <p> status - {ticketData()?.active ? 'PENDING' : 'FINISHED'} </p>
-          <p>
-            rounds - {ticketData()?.startingRound} -
-            {ticketData()!.startingRound + (ticketData()!.numOfRounds - 1)}
-          </p>
-          <p> timestamp - {ticketData()?.timestamp.toString()} </p>
-          <p> balls - {ticketData()?.userBalls} </p>
-          <p> bet - {ticketData()!.betPerRound * ticketData()!.numOfRounds} </p>
-          <p>
-            sum won -
-            {ticketData()?.rounds.reduce((sum, round) => {
-              return sum + round.amountWon
-            }, 0)}
-          </p>
+          <div class="mb-6">
+            <p> Ticket ID - {ticketData()?.ticketId} </p>
+            <p> Status - {ticketData()?.active ? 'PENDING' : 'FINISHED'} </p>
+            <p>
+              Rounds played - {ticketData()?.startingRound} -{' '}
+              {ticketData()!.startingRound + (ticketData()!.numOfRounds - 1)}
+            </p>
+            <p>
+              Time - {ticketData()?.timestamp.toLocaleDateString('de-DE')}{' '}
+              {ticketData()?.timestamp.toLocaleTimeString()}
+            </p>
+            <p> Bet - {ticketData()!.betPerRound * ticketData()!.numOfRounds} </p>
+            <p> Amount won - {ticketData()?.amountWon}</p>
+          </div>
 
-          <For each={ticketData()?.rounds}>
-            {(round) => (
-              <div class="border border-black p-6">
-                <p> round - {round.number} </p>
-                <p> bet - {ticketData()?.betPerRound} </p>
+          <div class="flex flex-col gap-4">
+            <For each={ticketData()?.rounds}>
+              {(round) => (
+                <div class="rounded-lg border border-black p-6">
+                  <div class="mb-6">
+                    <p> Round - {round.number} </p>
+                    <p> Bet - {ticketData()?.betPerRound} </p>
+                    <p> Amount won - {round.amountWon} </p>
+                    <p class={round.status === 'WIN' ? 'text-green-500' : 'text-red-500'}>{round.status}</p>
+                  </div>
 
-                <div class="grid grid-cols-8 border border-black">
-                  <For each={round.balls}>
-                    {(ball) => (
-                      <img
-                        src={`/src/assets/balls/${ball}.svg`}
-                        class={`${
-                          ticketData()?.userBalls.includes(ball)
-                            ? 'bg-green-500 text-white'
-                            : ''
-                        } mx-auto my-0 w-20 text-center text-2xl`}
-                      />
-                    )}
-                  </For>
+                  <div class="grid grid-cols-6">
+                    <For each={ticketData()?.userBalls}>
+                      {(ball) => {
+                        const userBallIndexInRound = round.balls.indexOf(ball)
+                        let stake = ''
+
+                        if (userBallIndexInRound === -1) {
+                          stake = 'X'
+                        } else if (userBallIndexInRound < 5) {
+                          stake = 'DRUM'
+                        } else {
+                          stake = stakes[userBallIndexInRound + 1] + 'x'
+                        }
+
+                        return (
+                          <div class="flex flex-col items-center gap-2">
+                            <img
+                              src={`/src/assets/balls/${ball}.svg`}
+                              class={`mx-auto my-0 w-20 text-center text-2xl`}
+                            />
+                            <p style={stake === 'X' ? { color: 'red' } : ''}> {stake} </p>
+                          </div>
+                        )
+                      }}
+                    </For>
+                  </div>
                 </div>
-
-                <p> amount won - {round.amountWon} </p>
-                <p
-                  class={
-                    round.status === 'WIN' ? 'text-green-500' : 'text-red-500'
-                  }
-                >
-                  {round.status}
-                </p>
-              </div>
-            )}
-          </For>
+              )}
+            </For>
+          </div>
         </div>
       </Show>
     </div>

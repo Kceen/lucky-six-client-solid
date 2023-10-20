@@ -6,19 +6,12 @@ import Swal from 'sweetalert2'
 import { Transition } from 'solid-transition-group'
 import { Portal } from 'solid-js/web'
 import { RoundEndScreen } from './RoundEndScreen'
+import globalGameState from './store/GlobalStore'
 
 const App: Component = () => {
   const ws = new WebSocket('ws://localhost:8080')
-  const [gameState, setGameState] = createStore<IGameState>({
-    activeBalls: [],
-    activePlayers: 0,
-    round: 0,
-    status: GameStatus.WAITING_FOR_NEXT_ROUND,
-    timeRemaining: 0,
-    firstBallColor: '',
-    firstBallEven: false,
-    firstBallHigherThan24: false
-  })
+
+  const { gameState, setGameState } = globalGameState
   const [ticketQRCodeImage, setTicketQRCodeImage] = createSignal('')
   const [newBallTrigger, setNewBallTrigger] = createSignal(false)
 
@@ -51,20 +44,8 @@ const App: Component = () => {
       confirmButtonColor: 'green',
       confirmButtonText: 'Bet',
       preConfirm: () => {
-        const betPerRound = Number(
-          (
-            document.getElementById(
-              'bet-form-bet-per-round'
-            ) as HTMLInputElement
-          ).value
-        )
-        const numOfRounds = Number(
-          (
-            document.getElementById(
-              'bet-form-number-of-rounds'
-            ) as HTMLInputElement
-          ).value
-        )
+        const betPerRound = Number((document.getElementById('bet-form-bet-per-round') as HTMLInputElement).value)
+        const numOfRounds = Number((document.getElementById('bet-form-number-of-rounds') as HTMLInputElement).value)
 
         submitBet(betPerRound, numOfRounds)
       }
@@ -117,9 +98,7 @@ const App: Component = () => {
     <>
       <Show when={gameState.status === GameStatus.ROUND_IN_PROGRESS}>
         <div class="relative">
-          <div class="absolute right-5 top-5 text-3xl font-bold">
-            round {gameState.round}
-          </div>
+          <div class="absolute right-5 top-5 text-3xl font-bold">round {gameState.round}</div>
 
           <div class="mx-auto my-0 mt-4 grid w-1/2 grid-cols-5 gap-4">
             <For each={gameState.activeBalls}>
@@ -144,65 +123,35 @@ const App: Component = () => {
 
           <img src={ticketQRCodeImage()} />
 
-          <div class="flex">
-            <div
-              style={{ height: 'calc(100vh - 208px)' }}
-              class=" grid w-3/4 grid-flow-col grid-cols-6 grid-rows-9 gap-4 p-6"
-            >
-              <For each={gameState.activeBalls}>
-                {(ball, index) => {
-                  if (index() > 4) {
-                    return (
-                      <Transition
-                        appear={true}
-                        onEnter={(el, done) => {
-                          const a = el.animate(
-                            [
-                              { opacity: 0, transform: 'scale(0)' },
-                              { opacity: 1, transform: 'scale(1)' }
-                            ],
-                            {
-                              duration: 600
-                            }
-                          )
-                          a.finished.then(done)
-                        }}
-                        onExit={(el, done) => {
-                          const a = el.animate(
-                            [{ opacity: 1 }, { opacity: 0 }],
-                            {
-                              duration: 600
-                            }
-                          )
-                          a.finished.then(done)
-                        }}
-                      >
-                        <div
-                          style={ballPositionInGrid(index())}
-                          class="flex w-full items-center justify-center gap-4"
-                        >
-                          <img
-                            class="h-full rounded-full shadow-md"
-                            src={`/src/assets/balls/${ball}.svg`}
-                          />
-                          <span> {stakes[index() + 1]} </span>
-                        </div>
-                      </Transition>
-                    )
-                  }
-                }}
-              </For>
-            </div>
-            <div class="flex w-1/4 flex-col items-center">
-              <p>First ball high or low (-24.5+)</p>
-              <p>{gameState.firstBallHigherThan24 ? 'HIGH' : 'LOW'}</p>
-              <p>First ball color</p>
-              <p class="font-bold" style={{ color: gameState.firstBallColor }}>
-                {gameState.firstBallColor.toUpperCase()}
-              </p>
-              <p>First ball even or odd </p>
-              <p>{gameState.firstBallEven ? 'EVEN' : 'ODD'}</p>
-            </div>
+          <div style={{ height: 'calc(100vh - 208px)' }} class=" grid grid-flow-col grid-cols-6 grid-rows-9 gap-4 p-6">
+            <For each={gameState.activeBalls}>
+              {(ball, index) => {
+                if (index() > 4) {
+                  return (
+                    <Transition
+                      appear={true}
+                      onEnter={(el, done) => {
+                        const a = el.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], {
+                          duration: 600
+                        })
+                        a.finished.then(done)
+                      }}
+                      onExit={(el, done) => {
+                        const a = el.animate([{ opacity: 1 }, { opacity: 0 }], {
+                          duration: 600
+                        })
+                        a.finished.then(done)
+                      }}
+                    >
+                      <div style={ballPositionInGrid(index())} class="flex w-full items-center justify-center gap-4">
+                        <img class="h-full rounded-full shadow-md" src={`/src/assets/balls/${ball}.svg`} />
+                        <span> {stakes[index() + 1]} </span>
+                      </div>
+                    </Transition>
+                  )
+                }
+              }}
+            </For>
           </div>
         </div>
         <Portal>
@@ -210,15 +159,9 @@ const App: Component = () => {
             <Transition
               appear={true}
               onEnter={(el, done) => {
-                const a = el.animate(
-                  [
-                    { opacity: 0, transform: 'scale(0)' },
-                    { opacity: 1, transform: 'scale(1)' }
-                  ],
-                  {
-                    duration: 1000
-                  }
-                )
+                const a = el.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], {
+                  duration: 1000
+                })
                 a.finished.then(done)
               }}
               onExit={(el, done) => {
@@ -229,11 +172,7 @@ const App: Component = () => {
               }}
             >
               <Show when={newBallTrigger() && gameState.activeBalls.length > 0}>
-                <img
-                  src={`/src/assets/balls/${
-                    gameState.activeBalls[gameState.activeBalls.length - 1]
-                  }.svg`}
-                />
+                <img src={`/src/assets/balls/${gameState.activeBalls[gameState.activeBalls.length - 1]}.svg`} />
               </Show>
             </Transition>
           </div>
@@ -241,7 +180,7 @@ const App: Component = () => {
       </Show>
 
       <Show when={gameState.status === GameStatus.WAITING_FOR_NEXT_ROUND}>
-        <RoundEndScreen gameState={gameState} />
+        <RoundEndScreen />
       </Show>
     </>
   )
