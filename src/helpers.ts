@@ -48,7 +48,72 @@ export const getAllBallsArray = (): number[] => {
   return allBallsArray
 }
 
+export const getGridIndexesArray = (): number[] => {
+  const gridIndexesArray: number[] = []
+  for (let i = 5; i < 35; i++) {
+    gridIndexesArray.push(i)
+  }
+
+  return gridIndexesArray
+}
+
+export const getBallsEvenToOddRatio = (balls: number[]): { evenBalls: number; oddBalls: number } => {
+  let evenBalls = 0
+  let oddBalls = 0
+
+  for (const ball of balls) {
+    if (ball % 2 === 0) {
+      evenBalls++
+    } else {
+      oddBalls++
+    }
+  }
+
+  return { evenBalls, oddBalls }
+}
+
+export const getFirstFiveBallsSum = (balls: number[]) => {
+  let sum = 0
+
+  for (let i = 0; i < balls.length; i++) {
+    if (i < 5) {
+      sum += balls[i]
+    } else {
+      break
+    }
+  }
+
+  return sum
+}
+
 export const ballPositionInGrid = (ballIndex: number): JSX.CSSProperties => {
+  if (ballIndex === 5) {
+    return { 'grid-area': '1 / 1' }
+  }
+  if (ballIndex === 6) {
+    return { 'grid-area': '2 / 1' }
+  }
+  if (ballIndex === 7) {
+    return { 'grid-area': '3 / 1' }
+  }
+  if (ballIndex === 8) {
+    return { 'grid-area': '4 / 1' }
+  }
+  if (ballIndex === 9) {
+    return { 'grid-area': '5 / 1' }
+  }
+  if (ballIndex === 10) {
+    return { 'grid-area': '6 / 1' }
+  }
+  if (ballIndex === 11) {
+    return { 'grid-area': '7 / 1' }
+  }
+  if (ballIndex === 12) {
+    return { 'grid-area': '8 / 1' }
+  }
+  if (ballIndex === 13) {
+    return { 'grid-area': '9 / 1' }
+  }
   if (ballIndex === 14) {
     return { 'grid-area': '7 / 2' }
   }

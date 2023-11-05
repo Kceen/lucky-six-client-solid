@@ -6,6 +6,7 @@ import App from './App'
 import { Router, Route, Routes } from '@solidjs/router'
 import { TicketStatus } from './TicketStatus'
 import { Layout } from './Layout/base'
+import { BetScreen } from './BetScreen'
 
 const root = document.getElementById('root')
 
@@ -22,6 +23,7 @@ render(
         <Route path="/" component={Layout}>
           <Route path="/" component={App} />
           <Route path="/ticket-status" component={TicketStatus} />
+          <Route path="/bet" component={BetScreen} />
         </Route>
       </Routes>
     </Router>

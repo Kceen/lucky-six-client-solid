@@ -1,15 +1,19 @@
-import { A } from '@solidjs/router'
+import { A, useNavigate } from '@solidjs/router'
 import { createSignal } from 'solid-js'
 import globalGameState from '../store/GlobalStore'
+import Swal from 'sweetalert2'
+import { GameActions, ITicket } from '../models'
 
 export const Header = () => {
-  const { gameState } = globalGameState
+  const { gameState, ws } = globalGameState
 
   const [currentTime, setCurrentTime] = createSignal<Date>(new Date())
 
   setInterval(() => {
     setCurrentTime(new Date())
   }, 1000)
+
+  const navigate = useNavigate()
 
   return (
     <div class="flex items-center justify-between bg-gradient-to-r from-green-500 to-green-700 p-6 text-white">
@@ -29,12 +33,15 @@ export const Header = () => {
         </div>
         <div class="flex flex-col">
           <p>Date</p>
-          <p class="text-lg font-bold">{new Date().toLocaleDateString()}</p>
+          <p class="text-lg font-bold">{new Date().toLocaleDateString('de-DE')}</p>
         </div>
         <div class="flex flex-col">
           <p>Time</p>
-          <p class="text-lg font-bold">{currentTime().toLocaleTimeString()}</p>
+          <p class="text-lg font-bold">{currentTime().toLocaleTimeString('de-DE')}</p>
         </div>
+        <button onclick={() => navigate('/bet')} class="bg-white px-6 py-2 text-2xl font-bold text-black">
+          BET
+        </button>
       </div>
     </div>
   )

@@ -41,7 +41,6 @@ export interface IGameState {
   status: GameStatus
   activeBalls: number[]
   pauseTime: number
-  timeRemaining: number
   firstBallHigherThan24: boolean
   firstBallColor: string
   firstBallEven: boolean

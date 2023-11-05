@@ -48,6 +48,7 @@ export const TicketStatus = () => {
         <div>
           <div class="mb-6">
             <p> Ticket ID - {ticketData()?.ticketId} </p>
+            <p> User balls - {ticketData()?.userBalls.join(',')} </p>
             <p> Status - {ticketData()?.active ? 'PENDING' : 'FINISHED'} </p>
             <p>
               Rounds played - {ticketData()?.startingRound} -{' '}
@@ -85,6 +86,8 @@ export const TicketStatus = () => {
                         } else {
                           stake = stakes[userBallIndexInRound + 1] + 'x'
                         }
+
+                        console.log(ticketData())
 
                         return (
                           <div class="flex flex-col items-center gap-2">

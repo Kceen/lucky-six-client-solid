@@ -1,9 +1,11 @@
 import { For } from 'solid-js'
-import { convertColorToTailwind, getAllBallsArray, getColorOfBall, stakes } from './helpers'
+import { convertColorToTailwind, getAllBallsArray, getBallsEvenToOddRatio, getColorOfBall, stakes } from './helpers'
 import globalGameState from './store/GlobalStore'
 
 export const RoundEndScreen = () => {
   const { gameState } = globalGameState
+
+  const { evenBalls, oddBalls } = getBallsEvenToOddRatio(gameState.activeBalls)
 
   return (
     <div class="flex">
@@ -26,7 +28,7 @@ export const RoundEndScreen = () => {
           }}
         </For>
       </div>
-      <div style={{ width: '40%' }} class="flex flex-col justify-around gap-2 p-12">
+      <div style={{ width: '40%' }} class="flex flex-col justify-between gap-2 p-12">
         <div>
           <p>First ball high or low (-24.5+)</p>
           <p class="text-2xl font-bold">{gameState.firstBallHigherThan24 ? 'HIGH' : 'LOW'}</p>
@@ -42,6 +44,11 @@ export const RoundEndScreen = () => {
         <div>
           <p>First ball even or odd </p>
           <p class="text-2xl font-bold">{gameState.firstBallEven ? 'EVEN' : 'ODD'}</p>
+        </div>
+
+        <div>
+          <p> Ratio even - odd </p>
+          <p class="text-2xl font-bold">{evenBalls + ' - ' + oddBalls}</p>
         </div>
 
         <div>
