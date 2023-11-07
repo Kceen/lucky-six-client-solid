@@ -1,11 +1,11 @@
 import { A, useNavigate } from '@solidjs/router'
-import { createSignal } from 'solid-js'
+import { Show, createSignal } from 'solid-js'
 import globalGameState from '../store/GlobalStore'
 import Swal from 'sweetalert2'
 import { GameActions, ITicket } from '../models'
 
 export const Header = () => {
-  const { gameState, ws } = globalGameState
+  const { gameState, user, ws } = globalGameState
 
   const [currentTime, setCurrentTime] = createSignal<Date>(new Date())
 
@@ -14,6 +14,36 @@ export const Header = () => {
   }, 1000)
 
   const navigate = useNavigate()
+
+  const handleLogin = () => {
+    Swal.fire({
+      title: 'Login',
+      html: `
+        <div class="flex items-center flex-col">
+          <p class="mb-3"> Username </p>
+          <input id="username" class="text-xl text-center p-3 mb-3 border border-black"/>
+          <p class="mb-3"> Password </p>
+          <input type="password" id="password" class="text-xl text-center p-3 mb-8 border border-black"/>
+        </div>
+        `,
+      confirmButtonColor: 'green',
+      confirmButtonText: 'Submit',
+      preConfirm: () => {
+        const username = (document.getElementById('username') as HTMLInputElement).value
+        const password = (document.getElementById('password') as HTMLInputElement).value
+
+        ws.send(
+          JSON.stringify({
+            type: GameActions.LOGIN,
+            data: {
+              username,
+              password
+            }
+          })
+        )
+      }
+    })
+  }
 
   return (
     <div class="flex items-center justify-between bg-gradient-to-r from-green-500 to-green-700 p-6 text-white">
@@ -39,9 +69,20 @@ export const Header = () => {
           <p>Time</p>
           <p class="text-lg font-bold">{currentTime().toLocaleTimeString('de-DE')}</p>
         </div>
-        <button onclick={() => navigate('/bet')} class="bg-white px-6 py-2 text-2xl font-bold text-black">
-          BET
-        </button>
+        <Show when={user()}>
+          <div class="flex flex-col">
+            <p>User</p>
+            <p class="text-lg font-bold">{user()?.username}</p>
+          </div>
+          <button onclick={() => navigate('/bet')} class="bg-white px-6 py-2 text-2xl font-bold text-black">
+            BET
+          </button>
+        </Show>
+        <Show when={!user()}>
+          <button onclick={handleLogin} class="bg-white px-6 py-2 text-xl text-black">
+            login
+          </button>
+        </Show>
       </div>
     </div>
   )

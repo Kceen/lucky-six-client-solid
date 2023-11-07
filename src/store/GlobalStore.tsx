@@ -1,6 +1,6 @@
 import { createRoot, createSignal } from 'solid-js'
 import { createStore } from 'solid-js/store'
-import { GameActions, GameStatus, IGameState } from '../models'
+import { GameActions, GameStatus, IGameState, IUser } from '../models'
 import { convertMessageRecieve } from '../helpers'
 import Swal from 'sweetalert2'
 
@@ -10,6 +10,7 @@ function createGlobalStore() {
   const [ticketQRCodeImage, setTicketQRCodeImage] = createSignal('')
   const [newBallTrigger, setNewBallTrigger] = createSignal(false)
   const [timeRemaining, setTimeRemaining] = createSignal(0)
+  const [user, setUser] = createSignal<IUser | undefined>(undefined)
 
   ws.onopen = () => {
     ws.onmessage = ({ data }) => {
@@ -27,6 +28,15 @@ function createGlobalStore() {
       }
       if (message.type === GameActions.PLAYER_WIN) {
       }
+      if (message.type === GameActions.LOGIN_FAIL) {
+        Swal.fire({
+          titleText: 'Login failed',
+          icon: 'error'
+        })
+      }
+      if (message.type === GameActions.LOGIN_SUCCESS) {
+        setUser(message.data)
+      }
       if (message.type === GameActions.BET_SUCCESS_RESPONSE) {
         Swal.fire({
           confirmButtonColor: 'green',
@@ -41,17 +51,6 @@ function createGlobalStore() {
         setTicketQRCodeImage(message.data)
       }
     }
-
-    ws.send(
-      JSON.stringify({
-        type: GameActions.PLAYER_JOINED,
-        data: {
-          id: '1',
-          name: 'Nikola',
-          money: 500
-        }
-      })
-    )
   }
 
   console.log('global store')
@@ -72,6 +71,7 @@ function createGlobalStore() {
     setGameState,
     newBallTrigger,
     setNewBallTrigger,
+    user,
     ticketQRCodeImage,
     setTicketQRCodeImage,
     timeRemaining,

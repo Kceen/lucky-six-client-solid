@@ -1,7 +1,7 @@
 import { For, createSignal } from 'solid-js'
 import { getAllBallsArray } from './helpers'
 import globalGameState from './store/GlobalStore'
-import { GameActions, ITicket } from './models'
+import { GameActions, ITicket, ITicketToBet } from './models'
 
 export const BetScreen = () => {
   const { ws } = globalGameState
@@ -56,7 +56,7 @@ export const BetScreen = () => {
           userBalls: selectedBalls(),
           betPerRound: betFormData().betPerRound,
           numOfRounds: betFormData().numberOfRounds
-        } as ITicket
+        } as ITicketToBet
       })
     )
   }
@@ -71,7 +71,7 @@ export const BetScreen = () => {
                 style={
                   selectedBalls().includes(ball)
                     ? { border: '5px solid white', 'box-shadow': '0px 0px 10px 3px white' }
-                    : { border: '5px solid transparent' }
+                    : { border: '5px solid transparent', filter: selectedBalls().length === 6 ? 'brightness(0.5)' : '' }
                 }
                 class={`h-min cursor-pointer rounded-full`}
                 onclick={() => handleOnBallClick(ball)}
