@@ -1,10 +1,10 @@
 import { For, createSignal } from 'solid-js'
 import { getAllBallsArray } from './helpers'
 import globalGameState from './store/GlobalStore'
-import { GameActions, ITicket, ITicketToBet } from './models'
+import { GameActions, ITicketRequest } from './models'
 
 export const BetScreen = () => {
-  const { ws } = globalGameState
+  const { ws, user } = globalGameState
 
   const [selectedBalls, setSelectedBalls] = createSignal<number[]>([])
   const [betFormData, setBetFormData] = createSignal({ numberOfRounds: 0, betPerRound: 0 })
@@ -52,11 +52,11 @@ export const BetScreen = () => {
       JSON.stringify({
         type: GameActions.BET,
         data: {
-          playerId: '1',
+          userId: user()?.id,
           userBalls: selectedBalls(),
           betPerRound: betFormData().betPerRound,
           numOfRounds: betFormData().numberOfRounds
-        } as ITicketToBet
+        } as ITicketRequest
       })
     )
   }

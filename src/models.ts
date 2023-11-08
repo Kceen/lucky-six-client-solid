@@ -10,8 +10,8 @@ export interface ITicketUser {
   username: string
 }
 
-export interface ITicketToBet {
-  playerId: string
+export interface ITicketRequest {
+  userId: string
   betPerRound: number
   userBalls: number[]
   numOfRounds: number
@@ -74,9 +74,11 @@ export enum GameActions {
   ROUND_START = 'ROUND_START',
   ROUND_END = 'ROUND_END',
   UPDATE_GAME_STATE = 'UPDATE_GAME_STATE',
+  UPDATE_USER_STATE = 'UPDATE_USER_STATE',
   PLAYER_WIN = 'PLAYER_WIN',
   BET = 'BET',
   BET_SUCCESS_RESPONSE = 'BET_SUCCESS_RESPONSE',
+  BET_FAIL_RESPONSE = 'BET_FAIL_RESPONSE',
   UPDATE_BALLS = 'UPDATE_BALLS',
   TIME_REMAINING = 'TIME_REMAINING',
   LOGIN = 'LOGIN',

@@ -23,8 +23,8 @@ const App: Component = () => {
 
         <Footer />
       </div>
-      <div class="w-1/4 p-4">
-        <div class="flex flex-col gap-4">
+      <div style={{ height: 'calc(100vh - 210px)' }} class="w-1/4 overflow-y-scroll p-4">
+        <div class="flex flex-col gap-4 overflow-hidden">
           <For each={user()?.tickets}>
             {(ticket) => {
               const ticketTimestampDate = new Date(ticket.timestamp)

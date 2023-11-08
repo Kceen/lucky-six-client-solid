@@ -19,6 +19,9 @@ function createGlobalStore() {
       if (message.type === GameActions.UPDATE_GAME_STATE) {
         setGameState(message.data)
       }
+      if (message.type === GameActions.UPDATE_USER_STATE) {
+        setUser(message.data)
+      }
       if (message.type === GameActions.NEW_BALL) {
         setNewBallTrigger(false)
         setNewBallTrigger(true)
@@ -49,6 +52,13 @@ function createGlobalStore() {
           `
         })
         setTicketQRCodeImage(message.data)
+      }
+      if (message.type === GameActions.BET_FAIL_RESPONSE) {
+        Swal.fire({
+          titleText: 'Bet failed',
+          text: message.data,
+          icon: 'error'
+        })
       }
     }
   }

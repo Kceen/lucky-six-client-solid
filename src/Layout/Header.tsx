@@ -2,7 +2,7 @@ import { A, useNavigate } from '@solidjs/router'
 import { Show, createSignal } from 'solid-js'
 import globalGameState from '../store/GlobalStore'
 import Swal from 'sweetalert2'
-import { GameActions, ITicket } from '../models'
+import { GameActions } from '../models'
 
 export const Header = () => {
   const { gameState, user, ws } = globalGameState
@@ -73,6 +73,10 @@ export const Header = () => {
           <div class="flex flex-col">
             <p>User</p>
             <p class="text-lg font-bold">{user()?.username}</p>
+          </div>
+          <div class="flex flex-col">
+            <p>Money</p>
+            <p class="text-lg font-bold">{user()?.money}</p>
           </div>
           <button onclick={() => navigate('/bet')} class="bg-white px-6 py-2 text-2xl font-bold text-black">
             BET
