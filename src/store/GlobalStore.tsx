@@ -1,4 +1,4 @@
-import { createRoot, createSignal } from 'solid-js'
+import { createEffect, createRoot, createSignal } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { GameActions, GameStatus, IGameState, IUser } from '../models'
 import { convertMessageRecieve } from '../helpers'
@@ -11,6 +11,10 @@ function createGlobalStore() {
   const [newBallTrigger, setNewBallTrigger] = createSignal(false)
   const [timeRemaining, setTimeRemaining] = createSignal(0)
   const [user, setUser] = createSignal<IUser | undefined>(undefined)
+
+  createEffect(() => {
+    console.log(user())
+  })
 
   ws.onopen = () => {
     ws.onmessage = ({ data }) => {

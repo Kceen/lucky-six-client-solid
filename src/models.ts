@@ -27,7 +27,7 @@ export interface ITicket {
   startingRound: number
   numOfRounds: number
   timestamp: Date
-  active: boolean
+  status: TicketStatus
   amountWon: number
   user: ITicketUser
 }
@@ -40,7 +40,7 @@ export interface ITicketStatus {
   startingRound: number
   numOfRounds: number
   timestamp: Date
-  active: boolean
+  status: TicketStatus
   amountWon: number
 }
 
@@ -89,4 +89,10 @@ export enum GameActions {
 export enum GameStatus {
   ROUND_IN_PROGRESS = 'ROUND_IN_PROGRESS',
   WAITING_FOR_NEXT_ROUND = 'WAITING_FOR_NEXT_ROUND'
+}
+
+export enum TicketStatus {
+  PENDING = 'PENDING',
+  LOSE = 'LOSE',
+  WIN = 'WIN'
 }

@@ -1,7 +1,7 @@
 import { Component, For, Show, createSignal } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { ballPositionInGrid, convertMessageRecieve, getAllBallsArray, getGridIndexesArray, stakes } from './helpers'
-import { GameStatus } from './models'
+import { GameStatus, TicketStatus } from './models'
 import { RoundEndScreen } from './RoundEndScreen'
 import globalGameState from './store/GlobalStore'
 import { Footer } from './Layout/Footer'
@@ -33,10 +33,23 @@ const App: Component = () => {
                 ' - ' +
                 ticketTimestampDate.toLocaleTimeString('de-DE')
 
+              let ticketStatusTextColor = ''
+              if (ticket.status === TicketStatus.PENDING) {
+                ticketStatusTextColor = 'orange'
+              } else if (ticket.status === TicketStatus.WIN) {
+                ticketStatusTextColor = 'green'
+              } else {
+                ticketStatusTextColor = 'red'
+              }
+
               return (
                 <div class="rounded-sm bg-white p-2 text-sm text-black">
                   <div class="border-b p-2">
                     <span class="font-bold">Ticket ID - </span> <span> {ticket.ticketId} </span>
+                  </div>
+                  <div class="border-b p-2">
+                    <span class="font-bold">Status - </span>
+                    <span style={{ color: ticketStatusTextColor }}> {ticket.status} </span>
                   </div>
                   <div class="border-b p-2">
                     <span class="font-bold">Bet - </span> <span> {ticket.betSum} </span>
