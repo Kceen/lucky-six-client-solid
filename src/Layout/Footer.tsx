@@ -31,23 +31,26 @@ export const Footer = () => {
 
       <Show when={gameState.status === GameStatus.ROUND_IN_PROGRESS}>
         <div class="flex w-full gap-6">
-          <div class="w-1/2">
-            <ProgressBar
-              beforeText="Even"
-              currentValue={(evenAndOddBalls().evenBalls / 24) * 100}
-              afterText={evenAndOddBalls().evenBalls.toString()}
-            />
+          <div class="w-1/2 px-16">
+            <div class="mb-2">
+              <ProgressBar
+                beforeText="Even"
+                currentValue={(gameState.evenBallsCount / 24) * 100}
+                afterText={gameState.evenBallsCount.toString()}
+              />
+            </div>
+
             <ProgressBar
               beforeText="Odd"
-              currentValue={(evenAndOddBalls().oddBalls / 24) * 100}
-              afterText={evenAndOddBalls().oddBalls.toString()}
+              currentValue={(gameState.oddBallsCount / 24) * 100}
+              afterText={gameState.oddBallsCount.toString()}
             />
           </div>
-          <div class="w-1/2">
+          <div class="w-1/2 px-16">
             <ProgressBar
               beforeText="First 5 sum"
-              currentValue={(firstFiveBallsSum() / 230) * 100}
-              afterText={firstFiveBallsSum().toString()}
+              currentValue={(gameState.firstFiveBallsSum / 230) * 100}
+              afterText={gameState.firstFiveBallsSum.toString()}
             />
           </div>
         </div>

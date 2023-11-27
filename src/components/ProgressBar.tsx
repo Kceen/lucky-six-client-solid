@@ -8,9 +8,9 @@ interface IProgressBarProps {
 
 export const ProgressBar = (props: IProgressBarProps) => {
   return (
-    <div class="flex items-center gap-4">
+    <div class="relative flex items-center gap-4">
       <Show when={props.beforeText}>
-        <div>
+        <div class="absolute -left-4 -translate-x-full">
           <p> {props.beforeText} </p>
         </div>
       </Show>
@@ -23,7 +23,7 @@ export const ProgressBar = (props: IProgressBarProps) => {
         ></div>
       </div>
       <Show when={props.afterText}>
-        <div>
+        <div class="absolute -right-4 translate-x-full">
           <p> {props.afterText} </p>
         </div>
       </Show>

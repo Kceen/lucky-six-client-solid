@@ -7,6 +7,8 @@ import globalGameState from './store/GlobalStore'
 import { Footer } from './Layout/Footer'
 import { RoundInProgressScreen } from './RoundInProgressScreen'
 import { TicketsList } from './components/TicketsList'
+import { Transition } from 'solid-transition-group'
+import { FadeAnimationWrapper } from './components/FadeAnimationWrapper'
 
 const App: Component = () => {
   const { gameState, user } = globalGameState
@@ -15,16 +17,24 @@ const App: Component = () => {
     <>
       <div class="flex">
         <div class="w-3/4">
-          <Show when={gameState.status === GameStatus.ROUND_IN_PROGRESS}>
-            <RoundInProgressScreen />
-          </Show>
+          <FadeAnimationWrapper duration={1000}>
+            <Show when={gameState.status === GameStatus.ROUND_IN_PROGRESS}>
+              <RoundInProgressScreen />
+            </Show>
+          </FadeAnimationWrapper>
 
-          <Show when={gameState.status === GameStatus.WAITING_FOR_NEXT_ROUND}>
-            <RoundEndScreen />
-          </Show>
+          <FadeAnimationWrapper duration={1000} enterDelay={1000}>
+            <Show when={gameState.status === GameStatus.WAITING_FOR_NEXT_ROUND}>
+              <RoundEndScreen />
+            </Show>
+          </FadeAnimationWrapper>
         </div>
         <div style={{ height: 'calc(100vh - 210px)' }} class="w-1/4 overflow-y-scroll p-4">
-          <TicketsList />
+          <FadeAnimationWrapper duration={500}>
+            <Show when={user() && user()!.tickets.length > 0}>
+              <TicketsList />
+            </Show>
+          </FadeAnimationWrapper>
         </div>
       </div>
       <Footer />

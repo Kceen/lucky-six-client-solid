@@ -12,10 +12,6 @@ function createGlobalStore() {
   const [timeRemaining, setTimeRemaining] = createSignal(0)
   const [user, setUser] = createSignal<IUser | undefined>(undefined)
 
-  createEffect(() => {
-    console.log(user())
-  })
-
   ws.onopen = () => {
     ws.onmessage = ({ data }) => {
       const message = convertMessageRecieve(data)
@@ -77,7 +73,10 @@ function createGlobalStore() {
     pauseTime: 0,
     firstBallColor: '',
     firstBallEven: false,
-    firstBallHigherThan24: false
+    firstBallHigherThan24: false,
+    firstFiveBallsSum: 0,
+    evenBallsCount: 0,
+    oddBallsCount: 0
   })
 
   return {

@@ -1,12 +1,45 @@
-import { For, Show } from 'solid-js'
+import { For, Ref, Show, createEffect, onMount } from 'solid-js'
 import { Portal } from 'solid-js/web'
 import { Transition } from 'solid-transition-group'
 import { getGridIndexesArray, ballPositionInGrid, stakes } from './helpers'
 import globalGameState from './store/GlobalStore'
+import { FadeAnimationWrapper } from './components/FadeAnimationWrapper'
 
 export const RoundInProgressScreen = () => {
   const { gameState, setGameState, newBallTrigger, setNewBallTrigger, ticketQRCodeImage, setTicketQRCodeImage, ws } =
     globalGameState
+
+  let gridBallsWrapperRef: HTMLDivElement | undefined
+  let testRef: any | undefined
+
+  // IF THE ROUND HAS ALREADY STARTED, PREPEND ALL ALREADY DRAWN BALLS IMMEDIATELY
+  onMount(() => {
+    // console.log(gridBallsWrapperRef?.children[0])
+
+    if (gameState.activeBalls.length > 5) {
+      // testRef.append(document.createElement('div'))
+      for (let i = 5; i < gameState.activeBalls.length - 1; i++) {
+        const ballImg = document.createElement('img')
+        ballImg.src = `/src/assets/balls/${gameState.activeBalls[i]}.svg`
+        ballImg.className = 'h-full rounded-full shadow-md'
+        gridBallsWrapperRef?.children[i - 5].prepend(ballImg)
+      }
+    }
+  })
+
+  createEffect(() => {
+    if (gameState.activeBalls.length > 5) {
+      // INDEX STARTS AT 0 SO -1 FROM LENGTH WHICH STARTS AT 1 AND -5 TO IGNORE FIRST 5 BALLS FROM DRUM
+      const currentBallIndex = gameState.activeBalls.length - 1 - 5
+      const ballImg = document.createElement('img')
+      ballImg.src = `/src/assets/balls/${gameState.activeBalls[currentBallIndex + 5]}.svg`
+      ballImg.className = 'h-full rounded-full shadow-md'
+
+      // gridBallsWrapperRef?.children[currentBallIndex].children[0].replaceWith(ballImg)
+
+      gridBallsWrapperRef?.children[currentBallIndex].prepend(ballImg)
+    }
+  })
 
   return (
     <>
@@ -27,7 +60,11 @@ export const RoundInProgressScreen = () => {
 
         <img src={ticketQRCodeImage()} />
 
-        <div style={{ height: 'calc(100vh - 200px)' }} class="grid grid-flow-col grid-cols-6 grid-rows-9 gap-4 p-6">
+        <div
+          ref={gridBallsWrapperRef}
+          style={{ height: 'calc(100vh - 200px)' }}
+          class="grid grid-flow-col grid-cols-6 grid-rows-9 gap-4 p-6"
+        >
           <For each={getGridIndexesArray()}>
             {(gridIndex) => {
               return (
@@ -35,10 +72,10 @@ export const RoundInProgressScreen = () => {
                   class="borders flex w-fit items-center justify-center gap-4 justify-self-center"
                   style={ballPositionInGrid(gridIndex)}
                 >
-                  <img
+                  {/* <img
                     class="h-full rounded-full shadow-md"
                     src={`/src/assets/balls/${gameState.activeBalls[gridIndex]}.svg`}
-                  />
+                  /> */}
                   <span> {stakes[gridIndex + 1]} </span>
                 </div>
               )
